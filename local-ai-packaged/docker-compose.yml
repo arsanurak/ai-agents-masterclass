@@ -169,8 +169,6 @@ services:
       - WORDPRESS_DB_USER
       - WORDPRESS_DB_PASSWORD
       - WORDPRESS_DB_NAME
-    depends_on:
-      - mariadb
     healthcheck:
       test:
         - CMD
