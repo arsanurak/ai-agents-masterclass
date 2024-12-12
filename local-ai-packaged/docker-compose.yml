@@ -3,8 +3,9 @@ volumes:
   postgres_storage:
   ollama_storage:
   qdrant_storage:
-  open-webui:
+  # open-webui:
   flowise:
+  wordpress_storage:
 
 networks:
   demo:
@@ -61,17 +62,17 @@ services:
         - ~/.flowise:/root/.flowise
     entrypoint: /bin/sh -c "sleep 3; flowise start"
 
-  open-webui:
-    image: ghcr.io/open-webui/open-webui:main
-    networks: ['demo']
-    restart: unless-stopped
-    container_name: open-webui
-    ports:
-      - "3000:8080"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    volumes:
-      - open-webui:/app/backend/data
+  # open-webui:
+  #   image: ghcr.io/open-webui/open-webui:main
+  #   networks: ['demo']
+  #   restart: unless-stopped
+  #   container_name: open-webui
+  #   ports:
+  #     - "3000:8080"
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   volumes:
+  #     - open-webui:/app/backend/data
 
   postgres:
     image: postgres:16-alpine
@@ -156,3 +157,28 @@ services:
     <<: *init-ollama
     depends_on:
       - ollama-gpu
+  
+  wordpress:
+    image: 'wordpress:latest'
+    networks: ['demo']
+    volumes:
+      - 'wordpress_storage:/var/www/html'
+    environment:
+      - SERVICE_FQDN_WORDPRESS
+      - WORDPRESS_DB_HOST
+      - WORDPRESS_DB_USER
+      - WORDPRESS_DB_PASSWORD
+      - WORDPRESS_DB_NAME
+    depends_on:
+      - mariadb
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - '-f'
+        - 'http://127.0.0.1'
+      interval: 2s
+      timeout: 10s
+      retries: 10
+    ports:
+      - 8081:80
